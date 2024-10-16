@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interfaz>
+  <boton>El boton</boton>
+  <texto>Un poco de textl</texto>
+  <entrada></entrada>
+  <boton>Hola</boton>
+  <boton>Guapo</boton>
+  <texto>Este es el texto</texto>
+  <texto>Feo! este es otro texto mas</texto>
+  <entrada></entrada>
+  <entrada></entrada>
+  <entrada></entrada>
+</interfaz>
