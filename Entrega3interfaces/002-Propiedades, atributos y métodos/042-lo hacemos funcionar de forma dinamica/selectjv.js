@@ -1,124 +1,131 @@
+// Texto a desplegar en las opciones
+let texto = "Javier";
 
-let texto = "Javier"
+// Referencia al contenedor principal
+let contenedor = document.querySelector("#contenedor");
 
-let contenedor = document.querySelector("#contenedor")
-let selector = document.createElement("select")
-contenedor.appendChild(selector)
-for(let i = 0;i<10;i++){
-	let opcion = document.createElement("option")
-	opcion.textContent = texto[i]
-	opcion.value=i
-	selector.appendChild(opcion)
+// Creación del elemento <select>
+let selector = document.createElement("select");
+contenedor.appendChild(selector);
+
+// Añadir opciones al selector basadas en la cadena de texto
+for (let i = 0; i < texto.length; i++) {
+  let opcion = document.createElement("option");
+  opcion.textContent = texto[i]; // Texto de cada opción
+  opcion.value = i; // Valor asociado a la opción
+  selector.appendChild(opcion); // Agregar la opción al selector
 }
-selectjv(selector)
-function selectjv(selector){
 
-     contenedores = []                                 // Para cada uno de los selectores               
-    contenedores.push(document.createElement("div"))                         // Creo un div
-    contenedores[contenedores.length-1].classList.add("selectjv")                                    // Le pongo una clase
-    
-    contenedores[contenedores.length-1].onclick = function(e){
-      e.stopPropagation()
-    }
+// Transformar el selector usando la función personalizada
+selectjv(selector);
 
-    selector.replaceWith(contenedores[contenedores.length-1])                                                       // Y elimino el select original
-    let caja = document.createElement("div")                                // Creo una caja
-    caja.classList.add("caja")                                              // Le pongo una clase
-    caja.textContent = selector.querySelector("option:first-child").textContent   // Le pongo el texto del primero option
-    contenedores[contenedores.length-1].appendChild(caja)                                            // Lo añado al contenedor
-   contenedores[contenedores.length-1].appendChild(selector)
-    caja.onclick = function(e){                                              // Cuando haga click en la caja
-      e.stopPropagation();
-      caja.classList.add("radio2")                                          // Le cambio la clase del radio
-      let resultados = document.createElement("div")                        // Creo un div de resultados
-      resultados.classList.add("resultados")                                // Le pongo la clase
-      this.appendChild(resultados)                                    // Lo añado al contenedor
-      
-      let buscador = document.createElement("input")                        // Creo un campo input de busqueda
-      buscador.setAttribute("type","search")                                // LE digo que el tipo de input es search
-      buscador.setAttribute("placeholder","busca...")                       // Le pongo un placeholder
-      resultados.appendChild(buscador)                                      // Lo añado al buscador
-     
-      buscador.onclick = function(e){
-      	 console.log("ok hola")
-        e.stopPropagation();
-      }
-      buscador.onkeyup = function(e){                                        // Cuando pulse una tecla en el buscador
-       
-        let busca = this.value                                              // Pongo el contenido en una variable
-        contieneresultados.innerHTML = ""                                         // Vacío los resultados
-        opciones.forEach(function(opcion){                                    // Y para cada una de las opciones
-          if(opcion.textContent.toLowerCase().includes(busca.toLowerCase())){                                 // Si la opcion contiene lo que se esta buscando
-            let texto = document.createElement("p")                             // Creo un elemento de texto
-            texto.textContent = opcion.textContent                                    // Les pongo el texto
-            contieneresultados.appendChild(texto)                                       // Y las añado a los resultados
-            texto.onclick = function(){
-                console.log("has hecho click en una opcion: ",texto.textContent)
-                resultados.remove()
-                 caja.textContent = texto.textContent
-                 let opciones2 = selector.querySelectorAll("option")
-                 console.log(opciones2)
-                 
-                 opciones2.forEach(function(opcion2){
-                    if(opcion2.textContent == texto.textContent){
-                        opcion2.setAttribute("selected",true)
-                    }else{
-                    		opcion2.removeAttribute("selected")
-                    
-                    }
-                 })
-            }
-          }
-        })
-      }
-      
-      let contieneresultados = document.createElement("div")              // Creo un contenedor intermedio
-      contieneresultados.onclick = function(e){
-      	e.stopPropagation();
-      }
-     
-      
-      let opciones = selector.querySelectorAll("option")                    // Selecciono las opciones
-      opciones.forEach(function(opcion){                                    // Y para cada una de las opciones
-        let texto = document.createElement("p")                             // Creo un elemento de texto
-        texto.textContent = opcion.textContent                                    // Les pongo el texto
-        contieneresultados.appendChild(texto)                                       // Y las añado a los resultados
-        texto.onclick = function(){
-            console.log("has hecho click en una opcion: ",texto.textContent)
-            resultados.remove()
-             caja.textContent = texto.textContent
-             let opciones2 = selector.querySelectorAll("option")
-                 console.log(opciones2)
-                 opciones2.forEach(function(opcion2){
-                    if(opcion2.textContent == texto.textContent){
-                        opcion2.setAttribute("selected",true)
-                    }else{
-                    		opcion2.removeAttribute("selected")
-                    	
-                    }
-                 })
+// Función que convierte un <select> en un componente personalizado
+function selectjv(selector) {
+  let contenedores = []; // Array para almacenar los contenedores personalizados
+
+  // Crear el contenedor principal para el nuevo select
+  let nuevoContenedor = document.createElement("div");
+  nuevoContenedor.classList.add("selectjv");
+  contenedores.push(nuevoContenedor);
+
+  // Reemplazar el <select> original con el contenedor personalizado
+  selector.replaceWith(nuevoContenedor);
+
+  // Crear la caja principal que muestra la opción seleccionada
+  let caja = document.createElement("div");
+  caja.classList.add("caja");
+  caja.textContent = selector.querySelector("option:first-child").textContent; // Mostrar la primera opción por defecto
+  nuevoContenedor.appendChild(caja);
+
+  // Añadir el selector original al nuevo contenedor (oculto)
+  nuevoContenedor.appendChild(selector);
+
+  // Evento para desplegar las opciones al hacer clic en la caja
+  caja.onclick = function (e) {
+    e.stopPropagation(); // Evitar la propagación del evento al documento
+
+    // Alternar el estado de desplegado
+    caja.classList.toggle("radio2");
+
+    // Crear el contenedor de resultados si no existe
+    let resultados = document.createElement("div");
+    resultados.classList.add("resultados");
+    nuevoContenedor.appendChild(resultados);
+
+    // Crear el buscador dentro de los resultados
+    let buscador = document.createElement("input");
+    buscador.setAttribute("type", "search");
+    buscador.setAttribute("placeholder", "Busca...");
+    resultados.appendChild(buscador);
+
+    // Contenedor para los resultados filtrados
+    let contenedorResultados = document.createElement("div");
+    resultados.appendChild(contenedorResultados);
+
+    // Evento: Filtro dinámico mientras se escribe
+    buscador.onkeyup = function () {
+      let busca = buscador.value.toLowerCase();
+      contenedorResultados.innerHTML = ""; // Limpiar resultados previos
+
+      let opciones = selector.querySelectorAll("option");
+      opciones.forEach((opcion) => {
+        if (opcion.textContent.toLowerCase().includes(busca)) {
+          let item = document.createElement("p");
+          item.textContent = opcion.textContent;
+
+          // Evento: Actualizar la selección al hacer clic
+          item.onclick = function () {
+            caja.textContent = item.textContent;
+            resultados.remove(); // Cerrar el menú
+            actualizarSeleccion(selector, item.textContent);
+          };
+
+          contenedorResultados.appendChild(item);
         }
-      })
-      
-      resultados.appendChild(contieneresultados)                            // A los resultados les añado el contenedor intermedio
-      resultados.onclick = function(e){
-      	e.stopPropagation();
-      }
-    }
+      });
+    };
 
- 
-    document.onclick = function(){
-      console.log("ok body")
-      contenedores.forEach(function(contenedor){
-      console.log(contenedor)
-      try{
-        contenedor.querySelector(".resultados").remove()
-        contenedor.querySelector(".caja").classList.remove("radio2") 
-      }catch(error){
-        console.log("error pero no pasa nada")
+    // Inicializar el contenedor con todas las opciones
+    let opciones = selector.querySelectorAll("option");
+    opciones.forEach((opcion) => {
+      let item = document.createElement("p");
+      item.textContent = opcion.textContent;
+
+      // Evento: Actualizar la selección al hacer clic
+      item.onclick = function () {
+        caja.textContent = item.textContent;
+        resultados.remove(); // Cerrar el menú
+        actualizarSeleccion(selector, item.textContent);
+      };
+
+      contenedorResultados.appendChild(item);
+    });
+
+    // Evitar cerrar el menú al interactuar con resultados
+    resultados.onclick = (e) => e.stopPropagation();
+  };
+
+  // Evento global para cerrar el menú si se hace clic fuera
+  document.onclick = function () {
+    contenedores.forEach((contenedor) => {
+      let resultados = contenedor.querySelector(".resultados");
+      if (resultados) {
+        resultados.remove();
       }
-        
-      })
-    } 
+      let caja = contenedor.querySelector(".caja");
+      caja.classList.remove("radio2");
+    });
+  };
 }
 
+// Función para actualizar la selección del <select>
+function actualizarSeleccion(selector, textoSeleccionado) {
+  let opciones = selector.querySelectorAll("option");
+  opciones.forEach((opcion) => {
+    if (opcion.textContent === textoSeleccionado) {
+      opcion.setAttribute("selected", true);
+    } else {
+      opcion.removeAttribute("selected");
+    }
+  });
+}

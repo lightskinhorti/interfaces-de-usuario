@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import pyautogui
+import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -25,6 +26,24 @@ centrovideoy = round(resolucion_video_y / 2)
 # Sensibilidad del movimiento
 sensibilidad = 12.5  # Aumenta o disminuye según la sensibilidad que prefieras
 
+# Puntos clave de los labios para calcular MAR
+lip_indices = [13, 14, 17, 0, 78, 308]  # MediaPipe: puntos alrededor de los labios
+
+# Función para calcular el MAR (Mouth Aspect Ratio)
+def calcular_mar(labios):
+    # Altura de la boca
+    A = np.linalg.norm(np.array([labios[1].x, labios[1].y]) - np.array([labios[5].x, labios[5].y]))
+    # Anchura de la boca
+    B = np.linalg.norm(np.array([labios[0].x, labios[0].y]) - np.array([labios[3].x, labios[3].y]))
+    mar = A / B
+    return mar
+
+# Umbral para considerar la boca abierta
+MAR_UMBRAL = 3  # Ajusta según tu preferencia
+
+# Posicionar el puntero en el centro de la pantalla al inicio
+pyautogui.moveTo(centropantallax, centropantallay)
+
 # Iniciar captura de video
 cap = cv2.VideoCapture(0)
 with mp_face_mesh.FaceMesh(
@@ -32,7 +51,7 @@ with mp_face_mesh.FaceMesh(
     refine_landmarks=True,
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as face_mesh:
-    
+
     while cap.isOpened():
         success, image = cap.read()
         if not success:
@@ -47,21 +66,21 @@ with mp_face_mesh.FaceMesh(
         # Dibujar anotaciones de la malla facial
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        
+
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 # Coordenadas del punto de referencia de la nariz
                 nose_landmark = face_landmarks.landmark[1]  # Índice 1 es la punta de la nariz
                 h, w, _ = image.shape  # Altura y anchura de la imagen
-                
+
                 # Convertir coordenadas normalizadas a píxeles
                 x_nose = int(nose_landmark.x * w)
                 y_nose = int(nose_landmark.y * h)
-                
+
                 # Calcular desplazamiento de la nariz respecto al centro del video
                 desplazamiento_x = x_nose - centrovideox
                 desplazamiento_y = y_nose - centrovideoy
-                
+
                 # Escalar el movimiento según la resolución de la pantalla y la sensibilidad
                 movimiento_x = centropantallax + (desplazamiento_x * sensibilidad)
                 movimiento_y = centropantallay + (desplazamiento_y * sensibilidad)
@@ -71,11 +90,23 @@ with mp_face_mesh.FaceMesh(
                 movimiento_y = max(0, min(altura, movimiento_y))
 
                 # Mover el cursor del ratón
-                pyautogui.moveTo(1920-movimiento_x, movimiento_y)
+                pyautogui.moveTo(1920 - movimiento_x, movimiento_y)
 
                 # Dibujar un círculo en la nariz para referencia visual
                 cv2.circle(image, (x_nose, y_nose), 5, (0, 255, 0), -1)
-                
+
+                # Extraer los puntos de los labios
+                labios = [face_landmarks.landmark[i] for i in lip_indices]
+
+                # Calcular el MAR
+                mar = calcular_mar(labios)
+
+                # Verificar si la boca está abierta
+                if mar > MAR_UMBRAL:
+                    # Realizar clic si el MAR supera el umbral
+                    pyautogui.click()
+                    print("¡Clic realizado!")
+
                 # Dibujar la malla facial completa
                 mp_drawing.draw_landmarks(
                     image=image,
@@ -84,11 +115,11 @@ with mp_face_mesh.FaceMesh(
                     landmark_drawing_spec=None,
                     connection_drawing_spec=mp_drawing_styles
                     .get_default_face_mesh_tesselation_style())
-                
+
         # Mostrar la imagen con la malla facial en modo selfie
         cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
         if cv2.waitKey(5) & 0xFF == 27:  # Presionar "Esc" para salir
             break
-            
+
 cap.release()
 cv2.destroyAllWindows()
