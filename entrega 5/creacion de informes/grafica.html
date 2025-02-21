@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+	<head>
+	</head>
+    <style>
+      body{
+        background: url(download.jpg);
+        background-size: cover;
+       }
+    </style>
+
+	<body>
+		<div id="contienegraficas" ></div> <!-- Contenedor donde se insertarán los gráficos -->
+		<script>
+			// Definición de la clase JVGrafica
+			class JVGrafica {
+				constructor(datos, color, selector) {
+					// Constructor: inicializa la información necesaria para los gráficos
+					this.datos = datos; // Datos de los sectores del gráfico
+					this.color = color; // Color base (no utilizado directamente, pero conservado por diseño)
+					this.selector = selector; // Selector donde se inserta el gráfico en el DOM
+				}
+
+				tarta() {
+					// Método para dibujar un gráfico de pastel
+					let anchura = 512; // Ancho del lienzo
+					let altura = 512; // Alto del lienzo
+					let lienzo = document.createElement("canvas"); // Crear un elemento canvas
+					lienzo.width = anchura; // Configurar el ancho del lienzo
+					lienzo.height = altura; // Configurar el alto del lienzo
+					lienzo.style.border = "1px solid grey"; // Borde para visualizar el área del canvas
+                    lienzo.style.background = "url('download.jpg') no-repeat center center";
+                    lienzo.style.backgroundSize = "cover";
+					let contexto = lienzo.getContext("2d"); // Contexto de dibujo en 2D
+					let alturaletra = 15; // Espaciado de texto en los sectores
+
+					document.querySelector(this.selector).appendChild(lienzo); // Insertar el lienzo en el contenedor
+
+					let total = 0; // Calcular el total de los valores de los datos
+					this.datos.forEach(function(dato) { 
+						total += dato.valor; // Sumar todos los valores
+					});
+
+					let anguloinicial = 0; // Ángulo inicial para el primer sector
+
+					// Iterar sobre los datos para dibujar cada sector del gráfico
+					this.datos.forEach(function(dato) {
+						// Generar un tono de gris aleatorio entre 70 y 220
+						let gris = Math.floor(70 + Math.random() * 150); 
+						let colorGris = `rgb(${gris}, ${gris}, ${gris})`; // Crear color gris
+
+						let angulofinal = (dato.valor / total) * Math.PI * 2; // Calcular el ángulo final del sector
+
+						// Dibujar el sector
+						contexto.fillStyle = colorGris; // Establecer el color de relleno
+						contexto.beginPath(); // Iniciar un nuevo camino
+						contexto.moveTo(anchura / 2, altura / 2); // Moverse al centro del lienzo
+						contexto.arc(
+							anchura / 2,
+							altura / 2,
+							anchura / 2 - 50, // Radio del círculo
+							anguloinicial, // Ángulo inicial
+							anguloinicial + angulofinal // Ángulo final
+						);
+						contexto.lineTo(anchura / 2, altura / 2); // Cerrar el sector hacia el centro
+						contexto.fill(); // Rellenar el sector
+
+						// Calcular el ángulo medio para colocar el texto
+						let angulotexto = anguloinicial + angulofinal / 2; 
+						contexto.textAlign = "center"; // Alinear el texto al centro
+						contexto.fillStyle = "white"; // Texto de color blanco
+						contexto.fillText(
+							dato.texto, // Etiqueta del sector
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 - 50) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 - 50) / 2 - alturaletra
+						);
+
+						// Mostrar el valor numérico en el sector
+						contexto.fillText(
+							dato.valor,
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 - 50) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 - 50) / 2
+						);
+
+						// Mostrar el porcentaje del sector
+						contexto.fillText(
+							(dato.valor / total).toFixed(2) + " %",
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 - 50) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 - 50) / 2 + alturaletra
+						);
+
+						anguloinicial += angulofinal; // Actualizar el ángulo inicial para el siguiente sector
+					});
+				}
+
+				anillo() {
+					// Método para dibujar un gráfico de anillo
+					let anchura = 512;
+					let altura = 512;
+					let lienzo = document.createElement("canvas");
+					lienzo.width = anchura;
+					lienzo.height = altura;
+					lienzo.style.border = "1px solid grey";
+                    lienzo.style.background = "url('download.jpg') no-repeat center center";
+                    lienzo.style.backgroundSize = "cover";
+					let contexto = lienzo.getContext("2d");
+					let alturaletra = 15;
+
+					document.querySelector(this.selector).appendChild(lienzo);
+
+					let total = 0; // Calcular el total de los datos
+					this.datos.forEach(function(dato) {
+						total += dato.valor;
+					});
+
+					let anguloinicial = 0;
+
+					this.datos.forEach(function(dato) {
+						let gris = Math.floor(70 + Math.random() * 150); // Generar color gris
+						let colorGris = `rgb(${gris}, ${gris}, ${gris})`;
+
+						let angulofinal = (dato.valor / total) * Math.PI * 2; // Ángulo del sector
+
+						contexto.fillStyle = colorGris;
+						contexto.beginPath();
+						contexto.moveTo(anchura / 2, altura / 2);
+						contexto.arc(
+							anchura / 2,
+							altura / 2,
+							anchura / 2 - 50,
+							anguloinicial,
+							anguloinicial + angulofinal
+						);
+						contexto.lineTo(anchura / 2, altura / 2);
+						contexto.fill();
+
+						let angulotexto = anguloinicial + angulofinal / 2;
+						contexto.textAlign = "center";
+						contexto.fillStyle = "white";
+						contexto.fillText(
+							dato.texto,
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 + 20) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 + 20) / 2 - alturaletra
+						);
+						contexto.fillText(
+							dato.valor,
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 + 20) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 + 20) / 2
+						);
+						contexto.fillText(
+							(dato.valor / total).toFixed(2) + " %",
+							anchura / 2 + Math.cos(angulotexto) * (anchura / 2 + 20) / 2,
+							altura / 2 + Math.sin(angulotexto) * (anchura / 2 + 20) / 2 + alturaletra
+						);
+
+						anguloinicial += angulofinal;
+					});
+
+					// Crear el "agujero" en el centro utilizando globalCompositeOperation
+                    contexto.globalCompositeOperation = 'destination-out'; // Este modo elimina lo que se dibuja
+
+                    contexto.beginPath();
+                    contexto.arc(anchura / 2, altura / 2, 100, 0, Math.PI * 2);
+                    contexto.fill();
+
+                    // Restaurar el modo de composición para el siguiente dibujo
+                    contexto.globalCompositeOperation = 'source-over'; // Esto es lo normal para dibujar
+				}
+			}
+
+			let datos = [
+				{"texto": "porcion1", "valor": 33},
+				{"texto": "porcion2", "valor": 33},
+				{"texto": "porcion3", "valor": 33}
+			];
+			// Crear una instancia de JVGrafica y dibujar ambos gráficos
+			let nuevografico = new JVGrafica(datos, "#dc143c", "#contienegraficas");
+			nuevografico.tarta();
+			nuevografico.anillo();
+		</script>
+	</body>
+</html>

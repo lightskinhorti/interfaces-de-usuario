@@ -1,0 +1,19 @@
+.jvtabla{
+	width:100%;
+	font-family:monospace;
+	border-collapse: collapse;
+}
+.jvtabla thead tr{
+	background:rgb(220, 203, 20);
+	color:rgb(0, 0, 0);
+	
+}
+.jvtabla thead tr th{
+	padding:10px;
+}
+.jvtabla tbody tr td{
+	padding:10px;
+}
+.jvtabla tbody tr:nth-child(odd){
+	background:rgb(255, 255, 255);
+}
