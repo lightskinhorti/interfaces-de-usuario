@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tablas</title>
+    <style>
+        /* Contenedor principal con flexbox */
+        #contenedor {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: stretch;
+            align-content: stretch;
+        }
+
+        /* Estilos de las secciones izquierda y derecha */
+        .izquierda {
+            width: 30%;
+        }
+
+        .derecha {
+            width: 70%;
+        }
+
+        /* Estilos para inputs y etiquetas */
+        input[type=checkbox], p {
+            display: inline-block;
+        }
+
+        label {
+            width: 100%;
+            display: block;
+        }
+
+        /* Diseño para los checkboxes */
+        #contienecampos {
+            column-count: 2;
+        }
+
+        /* Estilos del cuadro de consulta SQL */
+        .peticion {
+            background: black;
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            font-family: monospace;
+            text-shadow: 0px 0px 4px green, 0px 0px 4px green, 0px 0px 4px green, 0px 0px 4px green;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Administrador de Tablas</h1>
+
+<!-- Contenedor principal -->
+<div id="contenedor">
+    <!-- Sección izquierda: opciones de configuración -->
+    <div class="izquierda">
+        <p>1.-Selecciona la tabla para trabajar</p>
+        <select id="tablas">
+            <option value="">Selecciona una tabla...</option>
+        </select>
+
+        <p>2.-Selecciona los campos con los que quieres trabajar</p>
+        <div id="contienecampos"></div>
+
+        <p>3.-Define el límite de resultados</p>
+        <input type="number" id="limite" min="1" value="100">
+    </div>
+
+    <!-- Sección derecha: consulta generada y resultados -->
+    <div class="derecha">
+        <div class="peticion"></div>
+        <div id="resultadotabla"></div>
+    </div>
+</div>
+
+<script>
+    // Variables globales para construir la consulta SQL
+    let peticion = "SELECT ";
+    let tabla = "";
+    let columnas = "*";
+    let desde = " FROM ";
+    let limite = 100;
+
+    // Función que actualiza y ejecuta la consulta SQL
+    function ejecutaPeticion() {
+        if (tabla === "") {
+            document.querySelector(".peticion").textContent = "Selecciona una tabla antes de ejecutar la consulta.";
+            return;
+        }
+
+        let sql = peticion + columnas + desde + tabla + " LIMIT " + limite;
+        document.querySelector(".peticion").textContent = sql;
+
+        fetch("ejecuta.php?sql=" + encodeURIComponent(sql))
+            .then(response => response.text())
+            .then(datos => {
+                document.querySelector("#resultadotabla").innerHTML = datos;
+            })
+            .catch(error => console.error("Error al ejecutar la consulta:", error));
+    }
+
+    // Cargar la lista de tablas desde el servidor
+    fetch("../../servidor/?o=listatablas")
+        .then(response => response.json())
+        .then(datos => {
+            let selectTablas = document.querySelector("#tablas");
+            datos.forEach(tablaInfo => {
+                let opcion = document.createElement("option");
+                opcion.value = tablaInfo.Tables_in_crimson;
+                opcion.textContent = tablaInfo.Tables_in_crimson;
+                selectTablas.appendChild(opcion);
+            });
+        })
+        .catch(error => console.error("Error al cargar las tablas:", error));
+
+    // Evento al seleccionar una tabla
+    document.querySelector("#tablas").onchange = function () {
+        if (this.value === "") return;
+
+        console.log("Tabla seleccionada:", this.value);
+        tabla = this.value;
+        ejecutaPeticion();
+
+        // Cargar las columnas de la tabla seleccionada
+        fetch("../../servidor/?o=columnastabla&tabla=" + this.value)
+            .then(response => response.json())
+            .then(datos => {
+                let contenedor = document.querySelector("#contienecampos");
+                contenedor.innerHTML = ""; // Limpiar antes de agregar nuevos elementos
+
+                datos.forEach(dato => {
+                    let etiqueta = document.createElement("label");
+                    let checkbox = document.createElement("input");
+
+                    checkbox.type = "checkbox";
+                    checkbox.name = dato.Field;
+                    checkbox.classList.add("campo");
+
+                    // Evento al marcar o desmarcar un campo
+                    checkbox.onclick = function () {
+                        let camposSeleccionados = document.querySelectorAll(".campo:checked");
+                        columnas = camposSeleccionados.length > 0
+                            ? Array.from(camposSeleccionados).map(campo => campo.name).join(", ")
+                            : "*";
+
+                        ejecutaPeticion();
+                    };
+
+                    // Añadir el checkbox y el texto al label
+                    etiqueta.appendChild(checkbox);
+                    let texto = document.createElement("p");
+                    texto.textContent = dato.Field;
+                    etiqueta.appendChild(texto);
+
+                    // Agregar el label al contenedor
+                    contenedor.appendChild(etiqueta);
+                });
+            })
+            .catch(error => console.error("Error al cargar las columnas:", error));
+    };
+
+    // Evento al cambiar el límite de resultados
+    document.querySelector("#limite").onchange = function () {
+        let nuevoLimite = parseInt(this.value);
+        if (nuevoLimite < 1) {
+            alert("El límite debe ser mayor a 0.");
+            this.value = 1;
+            return;
+        }
+        limite = nuevoLimite;
+        ejecutaPeticion();
+    };
+
+    // Ejecutar la consulta inicial
+    ejecutaPeticion();
+</script>
+
+</body>
+</html>
